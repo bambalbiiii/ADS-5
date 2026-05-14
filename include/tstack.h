@@ -5,8 +5,9 @@
 template<typename T, int size>
 class TStack {
  private:
-  T data[size];
+  T data[100];
   int top;
+
  public:
   TStack() : top(-1) {}
   void push(T value) {
