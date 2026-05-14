@@ -20,25 +20,40 @@ std::string infx2pstfx(const std::string& inf) {
       pstfx += ch;
       last_was_digit = true;
     } else {
-      if (last_was_digit) { pstfx += ' '; last_was_digit = false; }
+      if (last_was_digit) {
+        pstfx += ' ';
+        last_was_digit = false;
+      }
       if (ch == '(') {
         stack.push(ch);
       } else if (ch == ')') {
         while (!stack.isEmpty() && stack.get() != '(') {
-          pstfx += stack.pop(); pstfx += ' ';
+          pstfx += stack.pop();
+          pstfx += ' ';
         }
-        if (!stack.isEmpty()) stack.pop();
+        if (!stack.isEmpty()) {
+          stack.pop();
+        }
       } else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
-        while (!stack.isEmpty() && getPriority(stack.get()) >= getPriority(ch)) {
-          pstfx += stack.pop(); pstfx += ' ';
+        while (!stack.isEmpty() &&
+               getPriority(stack.get()) >= getPriority(ch)) {
+          pstfx += stack.pop();
+          pstfx += ' ';
         }
         stack.push(ch);
       }
     }
   }
-  if (last_was_digit) pstfx += ' ';
-  while (!stack.isEmpty()) { pstfx += stack.pop(); pstfx += ' '; }
-  if (!pstfx.empty() && pstfx.back() == ' ') pstfx.pop_back();
+  if (last_was_digit) {
+    pstfx += ' ';
+  }
+  while (!stack.isEmpty()) {
+    pstfx += stack.pop();
+    pstfx += ' ';
+  }
+  if (!pstfx.empty() && pstfx.back() == ' ') {
+    pstfx.pop_back();
+  }
   return pstfx;
 }
 
@@ -52,16 +67,27 @@ int eval(const std::string& post) {
       num = num * 10 + (ch - '0');
       is_parsing_num = true;
     } else if (ch == ' ') {
-      if (is_parsing_num) { stack.push(num); num = 0; is_parsing_num = false; }
+      if (is_parsing_num) {
+        stack.push(num);
+        num = 0;
+        is_parsing_num = false;
+      }
     } else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
-      if (is_parsing_num) { stack.push(num); num = 0; is_parsing_num = false; }
-      int v2 = stack.pop(); int v1 = stack.pop();
+      if (is_parsing_num) {
+        stack.push(num);
+        num = 0;
+        is_parsing_num = false;
+      }
+      int v2 = stack.pop();
+      int v1 = stack.pop();
       if (ch == '+') stack.push(v1 + v2);
       else if (ch == '-') stack.push(v1 - v2);
       else if (ch == '*') stack.push(v1 * v2);
       else if (ch == '/') stack.push(v1 / v2);
     }
   }
-  if (is_parsing_num) stack.push(num);
-  return stack.get();
+  if (is_parsing_num) {
+    stack.push(num);
+  }
+  return stack.pop();
 }

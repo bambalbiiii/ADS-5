@@ -10,13 +10,21 @@ class TStack {
  public:
   TStack() : top(-1) {}
   void push(T value) {
-    if (top < size - 1) data[++top] = value;
+    if (top < size - 1) {
+      data[++top] = value;
+    }
   }
   T pop() {
-    return (top >= 0) ? data[top--] : T();
+    if (top >= 0) {
+      return data[top--];
+    }
+    return T();
   }
   T get() const {
-    return (top >= 0) ? data[top] : T();
+    if (top >= 0) {
+      return data[top];
+    }
+    return T();
   }
   bool isEmpty() const {
     return top == -1;
