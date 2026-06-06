@@ -1,93 +1,102 @@
 // Copyright 2025 NNTU-CS
 #include <string>
-#include "alg.h"
+#include <map>
 #include "tstack.h"
 
-int getPriority(char ch) {
-  if (ch == '(') return 0;
-  if (ch == '+' || ch == '-') return 1;
-  if (ch == '*' || ch == '/') return 2;
-  return -1;
-}
-
 std::string infx2pstfx(const std::string& inf) {
-  std::string pstfx = "";
-  TStack<char, 100> stack;
-  bool last_was_digit = false;
-  for (size_t i = 0; i < inf.length(); ++i) {
-    char ch = inf[i];
-    if (ch >= '0' && ch <= '9') {
-      pstfx += ch;
-      last_was_digit = true;
-    } else {
-      if (last_was_digit) {
-        pstfx += ' ';
-        last_was_digit = false;
+  TStack<char, 100> ops;
+  std::string out;
+
+  std::map<char, int> pr = {
+    {'+', 1},
+    {'-', 1},
+    {'*', 2},
+    {'/', 2}
+  };
+
+  for (size_t i = 0; i < inf.size(); ++i) {
+    char c = inf[i];
+
+    if (c >= '0' && c <= '9') {
+      out += c;
+      while (i + 1 < inf.size() && inf[i + 1] >= '0' && inf[i + 1] <= '9') {
+        ++i;
+        out += inf[i];
       }
-      if (ch == '(') {
-        stack.push(ch);
-      } else if (ch == ')') {
-        while (!stack.isEmpty() && stack.get() != '(') {
-          pstfx += stack.pop();
-          pstfx += ' ';
-        }
-        if (!stack.isEmpty()) {
-          stack.pop();
-        }
-      } else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
-        while (!stack.isEmpty() &&
-               getPriority(stack.get()) >= getPriority(ch)) {
-          pstfx += stack.pop();
-          pstfx += ' ';
-        }
-        stack.push(ch);
+      out += ' ';
+    } else if (c == '(') {
+      ops.push(c);
+    } else if (c == ')') {
+      while (!ops.isempty() && ops.get() != '(') {
+        out += ops.get();
+        out += ' ';
+        ops.pop();
       }
+      if (!ops.isempty()) {
+        ops.pop();
+      }
+    } else if (pr.count(c) != 0) {
+      while (!ops.isempty() && ops.get() != '(' && pr[ops.get()] >= pr[c]) {
+        out += ops.get();
+        out += ' ';
+        ops.pop();
+      }
+      ops.push(c);
     }
   }
-  if (last_was_digit) {
-    pstfx += ' ';
+
+  while (!ops.isempty()) {
+    if (ops.get() != '(') {
+      out += ops.get();
+      out += ' ';
+    }
+    ops.pop();
   }
-  while (!stack.isEmpty()) {
-    pstfx += stack.pop();
-    pstfx += ' ';
+
+  if (!out.empty()) {
+    out.pop_back();
   }
-  if (!pstfx.empty() && pstfx.back() == ' ') {
-    pstfx.pop_back();
-  }
-  return pstfx;
+
+  return out;
 }
 
-int eval(const std::string& post) {
-  TStack<int, 100> stack;
-  int num = 0;
-  bool is_parsing_num = false;
-  for (size_t i = 0; i < post.length(); ++i) {
-    char ch = post[i];
-    if (ch >= '0' && ch <= '9') {
-      num = num * 10 + (ch - '0');
-      is_parsing_num = true;
-    } else if (ch == ' ') {
-      if (is_parsing_num) {
-        stack.push(num);
-        num = 0;
-        is_parsing_num = false;
+int eval(const std::string& pref) {
+  TStack<int, 100> st;
+
+  for (size_t i = 0; i < pref.size(); ++i) {
+    char c = pref[i];
+
+    if (c == ' ') {
+      continue;
+    }
+
+    if (c >= '0' && c <= '9') {
+      int num = c - '0';
+      while (i + 1 < pref.size() && pref[i + 1] >= '0' && pref[i + 1] <= '9') {
+        ++i;
+        num = num * 10 + (pref[i] - '0');
       }
-    } else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
-      if (is_parsing_num) {
-        stack.push(num);
-        num = 0;
-        is_parsing_num = false;
+      st.push(num);
+    } else {
+      int b = st.get();
+      st.pop();
+      int a = st.get();
+      st.pop();
+
+      int res = 0;
+      if (c == '+') {
+        res = a + b;
+      } else if (c == '-') {
+        res = a - b;
+      } else if (c == '*') {
+        res = a * b;
+      } else if (c == '/') {
+        res = a / b;
       }
-      int v2 = stack.pop();
-      int v1 = stack.pop();
-      if (ch == '+') stack.push(v1 + v2);
-      else if (ch == '-') stack.push(v1 - v2);
-      else if (ch == '*') stack.push(v1 * v2);
-      else if (ch == '/') stack.push(v1 / v2);
+
+      st.push(res);
     }
   }
-  if (is_parsing_num) {
-    stack.push(num);
-  }
-  return stack.pop();
+
+  return st.get();
 }
